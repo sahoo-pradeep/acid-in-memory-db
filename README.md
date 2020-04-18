@@ -14,7 +14,8 @@ _My DB is an in-memory database which stores Key, Value pair of type <String, In
 1. Get the session: ``Session session = Session.createSession();``
 2. Start the session: ``session.start();``
 3. Do get/set/delete operations: ``session.get("A"); session.set("A", 2); session.delete("A");``
-4. Commit/Rollback session: ``session.commit(); session.rollback();``
+4. Count number of keys with Value ``session.countKeys(3)``
+5. Commit/Rollback session: ``session.commit(); session.rollback();``
 
 ## Test Sequence
 _Test code is written in Client.java_
