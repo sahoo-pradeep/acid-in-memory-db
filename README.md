@@ -1,5 +1,5 @@
 # My DB
-_My DB is a in-memory database which stores Key, Value pair as of type <String, Integer>_ 
+_My DB is an in-memory database which stores Key, Value pair of type <String, Integer>_ 
 
 ## Operations
 - Set(Key, Value) : Add or update the key, value
