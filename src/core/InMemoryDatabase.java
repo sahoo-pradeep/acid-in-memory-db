@@ -1,6 +1,7 @@
 package core;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
@@ -8,8 +9,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class InMemoryDatabase implements Database {
     private static final InMemoryDatabase INSTANCE = new InMemoryDatabase();
-    private final ConcurrentHashMap<String, Integer> dataSet;
-    private final ConcurrentHashMap<Integer, HashSet<String>> reverseDataSet;
+    private final Map<String, Integer> dataSet;
+    private final Map<Integer, Set<String>> reverseDataSet;
 
     private final Lock lock;
 
