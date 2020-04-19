@@ -4,20 +4,15 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class InMemoryDatabase implements Database {
     private static final InMemoryDatabase INSTANCE = new InMemoryDatabase();
     private final Map<String, Integer> dataSet;
     private final Map<Integer, Set<String>> reverseDataSet;
 
-    private final Lock lock;
-
     private InMemoryDatabase() {
         dataSet = new ConcurrentHashMap<>();
         reverseDataSet = new ConcurrentHashMap<>();
-        lock = new ReentrantLock();
     }
 
     public static InMemoryDatabase getInstance() {
@@ -31,29 +26,25 @@ public class InMemoryDatabase implements Database {
 
     @Override
     public Integer set(String key, Integer value) {
-        synchronized (lock) {
-            Integer previousValue = dataSet.put(key, value);
-            if (previousValue != null) {
-                reverseDataSet.get(previousValue).remove(key);
-            }
-
-            if (!reverseDataSet.containsKey(value)) {
-                reverseDataSet.put(value, new HashSet<>());
-            }
-            reverseDataSet.get(value).add(key);
-            return previousValue;
+        Integer previousValue = dataSet.put(key, value);
+        if (previousValue != null) {
+            reverseDataSet.get(previousValue).remove(key);
         }
+
+        if (!reverseDataSet.containsKey(value)) {
+            reverseDataSet.put(value, new HashSet<>());
+        }
+        reverseDataSet.get(value).add(key);
+        return previousValue;
     }
 
     @Override
     public Integer delete(String key) {
-        synchronized (lock) {
-            Integer value = dataSet.remove(key);
-            if (value != null) {
-                reverseDataSet.get(value).remove(key);
-            }
-            return value;
+        Integer value = dataSet.remove(key);
+        if (value != null) {
+            reverseDataSet.get(value).remove(key);
         }
+        return value;
     }
 
     @Override
@@ -63,15 +54,5 @@ public class InMemoryDatabase implements Database {
         } else {
             return reverseDataSet.get(value);
         }
-    }
-
-    @Override
-    public void getLock() {
-        lock.lock();
-    }
-
-    @Override
-    public void releaseLock() {
-        lock.unlock();
     }
 }

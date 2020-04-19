@@ -24,19 +24,32 @@ public class Session {
 
     public Integer get(String key) {
         if (!status.equals(SessionStatus.START)) {
-            throw new RuntimeException("core.Session is not started");
+            throw new RuntimeException("Session is not started");
         }
 
         if (newDataSet.containsKey(key)) {
             return newDataSet.get(key);
-        } else {
-            return database.get(key);
         }
+
+        Integer value = database.get(key);
+
+        for (Operation operation : writeOperations) {
+            if (operation instanceof SetOperation && ((SetOperation) operation).getKey()
+                    .equals(key)) {
+                value = ((SetOperation) operation).getValue();
+            } else if (operation instanceof DeleteOperation && ((DeleteOperation) operation)
+                    .getKey().equals(key)) {
+                value = null;
+            }
+        }
+
+        return value;
+
     }
 
     public void set(String key, Integer value) {
         if (!status.equals(SessionStatus.START)) {
-            throw new RuntimeException("core.Session is not started");
+            throw new RuntimeException("Session is not started");
         }
 
         Objects.requireNonNull(key, "Key shouldn't be null");
@@ -48,7 +61,7 @@ public class Session {
 
     public void delete(String key) {
         if (!status.equals(SessionStatus.START)) {
-            throw new RuntimeException("core.Session is not started");
+            throw new RuntimeException("Session is not started");
         }
 
         Objects.requireNonNull(key, "Key shouldn't be null");
@@ -62,7 +75,7 @@ public class Session {
 
     public Integer countKeys(Integer value) {
         if (!status.equals(SessionStatus.START)) {
-            throw new RuntimeException("core.Session is not started");
+            throw new RuntimeException("Session is not started");
         }
         Objects.requireNonNull(value, "Value shouldn't be null");
 
@@ -73,7 +86,8 @@ public class Session {
         }
 
         for (Operation operation : writeOperations) {
-            if (operation instanceof SetOperation && ((SetOperation) operation).getValue().equals(value)) {
+            if (operation instanceof SetOperation && ((SetOperation) operation).getValue()
+                    .equals(value)) {
                 keys.add(((SetOperation) operation).getKey());
             } else if (operation instanceof DeleteOperation) {
                 keys.remove(((DeleteOperation) operation).getKey());
@@ -85,7 +99,7 @@ public class Session {
 
     public void start() {
         if (!status.equals(SessionStatus.NOT_STARTED)) {
-            throw new RuntimeException("core.Session is already started");
+            throw new RuntimeException("Session is already started");
         }
 
         status = SessionStatus.START;
@@ -93,22 +107,21 @@ public class Session {
 
     public void commit() {
         if (!status.equals(SessionStatus.START)) {
-            throw new RuntimeException("core.Session is not started");
+            throw new RuntimeException("Session is not started");
         }
 
-        // Get lock
-        database.getLock();
-        try {
-            // execute write operations sequentially
-            for (Operation operation : writeOperations) {
-                if (operation instanceof SetOperation) {
-                    database.set(((SetOperation) operation).getKey(), ((SetOperation) operation).getValue());
-                } else if (operation instanceof DeleteOperation) {
-                    database.delete(((DeleteOperation) operation).getKey());
-                }
+        if (writeOperations.isEmpty()) {
+            return;
+        }
+
+
+        for (Operation operation : writeOperations) {
+            if (operation instanceof SetOperation) {
+                database.set(((SetOperation) operation).getKey(),
+                        ((SetOperation) operation).getValue());
+            } else if (operation instanceof DeleteOperation) {
+                database.delete(((DeleteOperation) operation).getKey());
             }
-        } finally {
-            database.releaseLock();
         }
 
         status = SessionStatus.COMMIT;
@@ -116,7 +129,7 @@ public class Session {
 
     public void rollback() {
         if (!status.equals(SessionStatus.START)) {
-            throw new RuntimeException("core.Session is not started");
+            throw new RuntimeException("Session is not started");
         }
 
         // clear all stored values

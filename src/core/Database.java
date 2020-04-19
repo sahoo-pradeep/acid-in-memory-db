@@ -10,8 +10,4 @@ public interface Database {
     Integer delete(String key);
 
     Set<String> getKeysWithValue(Integer value);
-
-    void getLock();
-
-    void releaseLock();
 }

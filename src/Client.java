@@ -48,7 +48,11 @@ public class Client {
             System.out.println("Client-3 Starting");
             session.start();
             System.out.println("Step 3: Client-3 Get A = " + session.get("A")); // expecting 3
-            // System.out.println("Client 3: Get count of value 3 = " + session.countKeys(3));
+            System.out.println("Client-3: Get count of value 3 = " + session.countKeys(3));
+            session.delete("C");
+            System.out.println("Client-3 Get C = " + session.get("C")); // expecting null
+            session.set("C", 10);
+            System.out.println("Client-3 Get C = " + session.get("C")); // expecting 10
             session.commit();
             System.out.println("Client-2 Committed");
         }, "Client-3");
