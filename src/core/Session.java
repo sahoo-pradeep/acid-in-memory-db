@@ -6,6 +6,13 @@ import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 
+/**
+ * Here, session can have only 1 transaction.
+ * State Flows:
+ * START
+ * GET/SET/DELETE/COUNT
+ * COMMIT/ROLLBACK
+ */
 public class Session {
     private final Database database;
     private final Queue<Operation> writeOperations;
